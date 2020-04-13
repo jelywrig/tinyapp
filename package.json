@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/jelywrig/tinyapp/issues"
   },
-  "homepage": "https://github.com/jelywrig/tinyapp#readme"
+  "homepage": "https://github.com/jelywrig/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
