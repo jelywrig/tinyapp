@@ -15,9 +15,14 @@ app.get('/', (request, response) => {
   response.send('Hello!');
 });
 
+app.get('/u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 app.post('/urls', (req, res) => {
   const shortURL = generateRandomString(6);
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = 'http://' + req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
