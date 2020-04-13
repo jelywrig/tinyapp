@@ -1,7 +1,9 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const PORT = 8080;
 
+app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
@@ -12,6 +14,12 @@ const urlDatabase = {
 app.get('/', (request, response) => {
   response.send('Hello!');
 });
+
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send("Ok");
+});
+
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
@@ -36,3 +44,17 @@ app.get('/hello', (req, res) => {
 app.listen(PORT, ()=>{
   console.log(`Example app listening on port ${PORT}`);
 });
+
+
+
+//Helper functions
+
+function generateRandomString() {
+  return Math.random().toString(36).substr(2, 6);
+}
+
+console.log(generateRandomString());
+console.log(generateRandomString());
+console.log(generateRandomString());
+console.log(generateRandomString());
+console.log(generateRandomString());
