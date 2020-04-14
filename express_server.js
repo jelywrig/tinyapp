@@ -41,9 +41,19 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
+  let userId = getUserIdByEmail(req.body.email);
+  let password = req.body.password;
+
+  if(!userId) {
+    res.status(403).send('No user with that email: <a href="/register">register</a>');
+  } else if(password !== users[userId].password) {
+    res.status(403).send('Incorrect password: <a href="/login">login</a>');
+  } else{
+    res.cookie('user_id', userId);
+    res.redirect('/urls');
+  }
 });
+
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
