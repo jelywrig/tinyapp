@@ -45,7 +45,7 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
@@ -73,16 +73,20 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 });
 
 app.post('/register', (req, res) => {
-  if(req.body.email && req.body.password) {
+  if(!req.body.email || !req.body.password) {
+    res.status(400).send('must provide email and password');
+  } else if(getUserIdByEmail(req.body.email)) {
+    res.status(400).send('This email is already registered');
+  } else {
     const newUser = { 
       id: generateRandomString(6),
       email: req.body.email,
       password: req.body.password
     }
     users[newUser.id] = newUser;
-console.log(users);
     res.cookie('user_id', newUser.id);
-    res.redirect('/urls')
+    res.redirect('/urls');
+    
   }
   
 });
@@ -143,5 +147,16 @@ function generateRandomString(length) {
     }
     return result.join('');;
  }
+}
+
+function getUserIdByEmail(email) {
+
+  for(const user in users) {
+    if(users[user].email === email) {
+      return user;
+    }
+  }
+
+  return '';
 }
 
