@@ -159,18 +159,19 @@ app.get('/urls/new', (req, res) =>{
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  if(urlDatabase[req.params.shortURL]){
+  console.log(req.cookies.user_id);
+  if(!urlDatabase[req.params.shortURL]) {
+    res.status(403).send('That URL code does not exist\n<a href="/urls">URLs<a>');
+  } else if (!(urlDatabase[req.params.shortURL].userID === req.cookies.user_id)) {
+    res.status(403).send('That URL does not belong to the currently logged in user <a href="/urls">URLs<a>');
+  } else {
     let templateVars = { 
       shortURL: req.params.shortURL, 
       url: urlDatabase[req.params.shortURL],
       user: users[req.cookies.user_id]
     };
     res.render('urls_show', templateVars);
-  } else {
-    res.status(403).send('That URL code does not exist\n<a href="/urls">URLs<a>');
   }
-  
-
 });
 
 app.get('/hello', (req, res) => {
