@@ -9,8 +9,14 @@ app.use(cookieParser());
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'b2xVn2': { 
+    longURL:'http://www.lighthouselabs.ca',
+    userID: 'userRandomID'
+  },
+  '9sm5xK': {
+    longURL: 'http://www.google.com',
+    userID: 'userRandomID'
+  }
 };
 
 const users = { 
@@ -31,7 +37,7 @@ app.get('/', (request, response) => {
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   if(!longURL) {
     res.statusCode = 404;
     res.send('link not found');
@@ -60,15 +66,19 @@ app.post('/logout', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
+  const userId = req.cookies.user_id;
   const shortURL = generateRandomString(6);
-  urlDatabase[shortURL] = 'http://' + req.body.longURL;
+  urlDatabase[shortURL] = { 
+    longURL:'http://' + req.body.longURL,
+    userID: userId
+  };
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.post('/urls/:shortURL/update', (req,res) => {
   const shortURL = req.params.shortURL;
   if(urlDatabase[shortURL]) {
-    urlDatabase[shortURL] = 'http://' + req.body.longURL;
+    urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.statusCode = 404;
@@ -130,13 +140,19 @@ app.get('/urls/new', (req, res) =>{
   const templateVars = {  
     user: users[req.cookies.user_id]
   };
-  res.render('urls_new', templateVars);
+  if(templateVars.user) {
+    res.render('urls_new', templateVars);
+  } else {
+    res.redirect('/login');
+  }
+
+  
 });
 
 app.get('/urls/:shortURL', (req, res) => {
   let templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
+    url: urlDatabase[req.params.shortURL],
     user: users[req.cookies.user_id]
   };
   res.render('urls_show', templateVars);
