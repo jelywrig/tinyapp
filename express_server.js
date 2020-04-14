@@ -30,6 +30,18 @@ app.post('/urls', (req, res) => {
   urlDatabase[shortURL] = 'http://' + req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
+
+app.post('/urls/:shortURL/update', (req,res) => {
+  const shortURL = req.params.shortURL;
+  if(urlDatabase[shortURL]) {
+    urlDatabase[shortURL] = 'http://' + req.body.longURL;
+    res.redirect(`/urls/${shortURL}`);
+  } else {
+    res.statusCode = 404;
+    res.send('url not in database');
+  }
+
+});
 app.post('/urls/:shortURL/delete', (req, res) =>{
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
