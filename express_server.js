@@ -59,6 +59,13 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
   res.redirect('/urls');
 });
 
+app.get('/register', (req, res) => {
+  const templateVars = {  
+    username: req.cookies.username
+  };
+  res.render('users_registration', templateVars);
+});
+
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
