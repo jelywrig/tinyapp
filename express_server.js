@@ -130,12 +130,21 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/urls', (req,res) => {
-  const templateVars = { 
-    urls: urlDatabase, 
-    user: users[req.cookies.user_id]
-  };
-  res.render('urls_index', templateVars);
+  if(!req.cookies.user_id) {
+    res.send('Please login or register in order to access your URLs\n<a href="/login">Login</a> <a href="Register">Register</a>');
+  } else {
+    const templateVars = { 
+      urls: getUrlsForUser(req.cookies.user_id), 
+      user: users[req.cookies.user_id]
+    };
+    res.render('urls_index', templateVars);
+  }
+  
+  
+  
 });
+
+
 app.get('/urls/new', (req, res) =>{
   const templateVars = {  
     user: users[req.cookies.user_id]
@@ -199,3 +208,13 @@ function getUserIdByEmail(email) {
   return '';
 }
 
+function getUrlsForUser(id) {
+  const result = {};
+  for (const url in urlDatabase) {
+    if(urlDatabase[url].userID === id) {
+      result[url] = urlDatabase[url];
+    }
+  }
+
+  return result;
+}
