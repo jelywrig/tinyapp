@@ -150,12 +150,18 @@ app.get('/urls/new', (req, res) =>{
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { 
-    shortURL: req.params.shortURL, 
-    url: urlDatabase[req.params.shortURL],
-    user: users[req.cookies.user_id]
-  };
-  res.render('urls_show', templateVars);
+  if(urlDatabase[req.params.shortURL]){
+    let templateVars = { 
+      shortURL: req.params.shortURL, 
+      url: urlDatabase[req.params.shortURL],
+      user: users[req.cookies.user_id]
+    };
+    res.render('urls_show', templateVars);
+  } else {
+    res.status(403).send('That URL code does not exist\n<a href="/urls">URLs<a>');
+  }
+  
+
 });
 
 app.get('/hello', (req, res) => {
