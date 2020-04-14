@@ -28,8 +28,8 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-res.cookie('username', req.body.username);
-res.send();
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
 });
 
 app.post('/urls', (req, res) => {
@@ -60,15 +60,25 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/urls', (req,res) => {
-  const templateVars = { urls: urlDatabase};
+  const templateVars = { 
+    urls: urlDatabase, 
+    username: req.cookies.username
+  };
   res.render('urls_index', templateVars);
 });
 app.get('/urls/new', (req, res) =>{
-  res.render('urls_new');
+  const templateVars = {  
+    username: req.cookies.username
+  };
+  res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies.username
+  };
   res.render('urls_show', templateVars);
 });
 
