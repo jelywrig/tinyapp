@@ -77,19 +77,26 @@ app.post('/urls', (req, res) => {
 
 app.post('/urls/:shortURL/update', (req,res) => {
   const shortURL = req.params.shortURL;
-  if(urlDatabase[shortURL]) {
+  
+  if(!urlDatabase[shortURL]) {
+    res.status(404).send('url not in database');
+  } else if(! (req.cookies.user_id === urlDatabase[shortURL].userID)) {
+    res.status(403).send('Can not update URL that you do not own')
+  } else {
     urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
     res.redirect(`/urls/${shortURL}`);
-  } else {
-    res.statusCode = 404;
-    res.send('url not in database');
   }
 
 });
 app.post('/urls/:shortURL/delete', (req, res) =>{
   const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  if(! (req.cookies.user_id === urlDatabase[shortURL].userID)) {
+    res.status(403).send('Can not delete URL you do not own');
+  } else {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  }
+
 });
 
 app.post('/register', (req, res) => {
@@ -159,9 +166,8 @@ app.get('/urls/new', (req, res) =>{
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  console.log(req.cookies.user_id);
   if(!urlDatabase[req.params.shortURL]) {
-    res.status(403).send('That URL code does not exist\n<a href="/urls">URLs<a>');
+    res.status(404).send('That URL code does not exist\n<a href="/urls">URLs<a>');
   } else if (!(urlDatabase[req.params.shortURL].userID === req.cookies.user_id)) {
     res.status(403).send('That URL does not belong to the currently logged in user <a href="/urls">URLs<a>');
   } else {
