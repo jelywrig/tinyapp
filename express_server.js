@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser= require('cookie-parser');
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
@@ -52,7 +53,7 @@ app.post('/login', (req, res) => {
 
   if(!userId) {
     res.status(403).send('No user with that email: <a href="/register">register</a>');
-  } else if(password !== users[userId].password) {
+  } else if(!bcrypt.compareSync(req.body.password, users[userId].password)) {
     res.status(403).send('Incorrect password: <a href="/login">login</a>');
   } else{
     res.cookie('user_id', userId);
@@ -108,7 +109,7 @@ app.post('/register', (req, res) => {
     const newUser = { 
       id: generateRandomString(6),
       email: req.body.email,
-      password: req.body.password
+      password: bcrypt.hashSync(req.body.password,10)
     }
     users[newUser.id] = newUser;
     res.cookie('user_id', newUser.id);
