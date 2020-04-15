@@ -33,9 +33,22 @@ const getUrlsForUser = function(id, urlDatabase) {
   return result;
 }
 
+const getUniqueVisitors = function(url) {
+  const counts = {};
+  for(const visit of url.visits) {
+    if(counts[visit.visitorID]) {
+      counts[visit.visitorID] += 1;
+    } else {
+      counts[visit.visitorID] = 1;
+    }
+  }
+  return Object.keys(counts).length;
+}
+
 
 module.exports = {
   getUserIdByEmail,
   generateRandomString,
-  getUrlsForUser
+  getUrlsForUser,
+  getUniqueVisitors
 };

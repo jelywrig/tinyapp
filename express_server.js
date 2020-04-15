@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
-const {getUserIdByEmail, generateRandomString,getUrlsForUser} = require('./helpers');
+const {getUserIdByEmail, generateRandomString,getUrlsForUser, getUniqueVisitors} = require('./helpers');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
@@ -226,7 +226,8 @@ app.get('/urls/:shortURL', (req, res) => {
     let templateVars = {
       shortURL: req.params.shortURL,
       url: urlDatabase[req.params.shortURL],
-      user: users[req.session.user_id]
+      user: users[req.session.user_id],
+      uniqueVisitors: getUniqueVisitors(urlDatabase[req.params.shortURL])
     };
     console.log(templateVars.url);
     res.render('urls_show', templateVars);
