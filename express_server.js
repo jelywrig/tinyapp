@@ -229,7 +229,6 @@ app.get('/urls/:shortURL', (req, res) => {
       user: users[req.session.user_id],
       uniqueVisitors: getUniqueVisitors(urlDatabase[req.params.shortURL])
     };
-    console.log(templateVars.url);
     res.render('urls_show', templateVars);
   }
 });
