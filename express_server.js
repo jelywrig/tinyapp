@@ -38,8 +38,13 @@ const users = {
   }
 };
 
-app.get('/', (request, response) => {
-  response.send('Hello!');
+app.get('/', (req, res) => {
+  const userID = req.session.user_id;
+  if(!userID|| !users[userID]) {
+    res.redirect('./login')
+  } else  {
+    res.redirect('./urls');
+  }
 });
 
 app.get('/u/:shortURL', (req, res) => {
