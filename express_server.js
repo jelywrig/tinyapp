@@ -19,11 +19,13 @@ app.set('view engine', 'ejs');
 const urlDatabase = {
   'b2xVn2': {
     longURL:'http://www.lighthouselabs.ca',
-    userID: 'userRandomID'
+    userID: 'userRandomID',
+    visits: []
   },
   '9sm5xK': {
     longURL: 'http://www.google.com',
-    userID: 'userRandomID'
+    userID: 'userRandomID',
+    visits:[]
   }
 };
 
@@ -115,19 +117,30 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  req.session = null;
+  req.session.user_id = undefined;
   res.redirect('/urls');
 });
 
 //follow shortlink
 
 app.get('/u/:shortURL', (req, res) => {
-  const URL = urlDatabase[req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  const URL = urlDatabase[shortURL];
   const longURL = URL.longURL;
   if (!URL) {
     res.statusCode = 404;
     res.send('link not found');
   } else {
+    //check for visitor id, assign one if not present
+    let visitorID = undefined;
+    if(req.session.visitor_id) {
+      visitorID = req.session.visitor_id;
+    } else {
+      visitorID = generateRandomString(6);
+      req.session.visitor_id = visitorID;
+    }
+    //add visit to url in URL db
+    urlDatabase[shortURL].visits.push({visitorID, datetime: new Date()});
     res.redirect(longURL);
   }
 });
@@ -140,7 +153,8 @@ app.post('/urls', (req, res) => {
   const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = {
     longURL: req.body.longURL.includes('http') ? req.body.longURL : 'http://' + req.body.longURL,
-    userID: userId
+    userID: userId,
+    visits: []
   };
   res.redirect(`/urls/${shortURL}`);
 });
@@ -187,6 +201,7 @@ app.post('/urls/:shortURL/update', (req,res) => {
     res.status(403).send('Can not update URL that you do not own');
   } else {
     urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
+    urlDatabase[shortURL].visits = [];
     res.redirect(`/urls/${shortURL}`);
   }
 
@@ -213,6 +228,7 @@ app.get('/urls/:shortURL', (req, res) => {
       url: urlDatabase[req.params.shortURL],
       user: users[req.session.user_id]
     };
+    console.log(templateVars.url);
     res.render('urls_show', templateVars);
   }
 });
