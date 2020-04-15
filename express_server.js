@@ -42,7 +42,7 @@ const users = {
 
 app.get('/', (req, res) => {
   const userID = req.session.user_id;
-  if(!userID|| !users[userID]) {
+  if(!userID || !users[userID]) {
     res.redirect('./login')
   } else  {
     res.redirect('./urls');
@@ -89,7 +89,12 @@ app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
   };
-  res.render('users_login', templateVars);
+  if(!templateVars.user) {
+    res.render('users_login', templateVars);
+  } else {
+    res.redirect('/urls');
+  }
+  
 });
 
 
@@ -108,7 +113,7 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/login');
+  res.redirect('/urls');
 });
 
 //follow shortlink
