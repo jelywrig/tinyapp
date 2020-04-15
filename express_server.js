@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
+const {getUserIdByEmail, generateRandomString,getUrlsForUser} = require('./helpers');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
@@ -52,7 +53,7 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  let userId = getUserIdByEmail(req.body.email);
+  let userId = getUserIdByEmail(req.body.email, users);
 
   if (!userId) {
     res.status(403).send('No user with that email: <a href="/register">register</a>');
@@ -106,7 +107,7 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 app.post('/register', (req, res) => {
   if (!req.body.email || !req.body.password) {
     res.status(400).send('must provide email and password');
-  } else if (getUserIdByEmail(req.body.email)) {
+  } else if (getUserIdByEmail(req.body.email, users)) {
     res.status(400).send('This email is already registered');
   } else {
     const newUser = {
@@ -145,7 +146,7 @@ app.get('/urls', (req,res) => {
     res.send('Please login or register in order to access your URLs\n<a href="/login">Login</a> <a href="Register">Register</a>');
   } else {
     const templateVars = {
-      urls: getUrlsForUser(req.session.user_id),
+      urls: getUrlsForUser(req.session.user_id, urlDatabase),
       user: users[req.session.user_id]
     };
     res.render('urls_index', templateVars);
@@ -194,38 +195,4 @@ app.listen(PORT, ()=>{
 
 
 
-//Helper functions
 
-function generateRandomString(length) {
-  {
-    let result           = [];
-    let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
-    }
-    return result.join('');
-  }
-}
-
-function getUserIdByEmail(email) {
-
-  for (const user in users) {
-    if (users[user].email === email) {
-      return user;
-    }
-  }
-
-  return '';
-}
-
-function getUrlsForUser(id) {
-  const result = {};
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      result[url] = urlDatabase[url];
-    }
-  }
-
-  return result;
-}
