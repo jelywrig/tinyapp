@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
+//***************setup ********************
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
@@ -14,6 +15,7 @@ app.use(cookieSession({
 }));
 app.set('view engine', 'ejs');
 
+//**********temp data ****************
 const urlDatabase = {
   'b2xVn2': {
     longURL:'http://www.lighthouselabs.ca',
@@ -38,6 +40,7 @@ const users = {
   }
 };
 
+//*************Routes*************/
 //home
 
 app.get('/', (req, res) => {
@@ -136,7 +139,7 @@ app.post('/urls', (req, res) => {
   const userId = req.session.user_id;
   const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = {
-    longURL:'http://' + req.body.longURL,
+    longURL: req.body.longURL.includes('http') ? req.body.longURL : 'http://' + req.body.longURL,
     userID: userId
   };
   res.redirect(`/urls/${shortURL}`);
@@ -173,8 +176,6 @@ app.get('/urls/new', (req, res) =>{
   } else {
     res.redirect('/login');
   }
-
-  
 });
 
 app.post('/urls/:shortURL/update', (req,res) => {
