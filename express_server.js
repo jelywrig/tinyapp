@@ -38,6 +38,8 @@ const users = {
   }
 };
 
+//home
+
 app.get('/', (req, res) => {
   const userID = req.session.user_id;
   if(!userID|| !users[userID]) {
@@ -47,67 +49,7 @@ app.get('/', (req, res) => {
   }
 });
 
-app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  if (!longURL) {
-    res.statusCode = 404;
-    res.send('link not found');
-  } else {
-    res.redirect(longURL);
-  }
-});
-
-app.post('/login', (req, res) => {
-  let userId = getUserIdByEmail(req.body.email, users);
-
-  if (!userId) {
-    res.status(403).send('No user with that email: <a href="/register">register</a>');
-  } else if (!bcrypt.compareSync(req.body.password, users[userId].password)) {
-    res.status(403).send('Incorrect password: <a href="/login">login</a>');
-  } else {
-    req.session.user_id = userId;
-    res.redirect('/urls');
-  }
-});
-
-app.post('/logout', (req, res) => {
-  req.session = null;
-  res.redirect('/urls');
-});
-
-app.post('/urls', (req, res) => {
-  const userId = req.session.user_id;
-  const shortURL = generateRandomString(6);
-  urlDatabase[shortURL] = {
-    longURL:'http://' + req.body.longURL,
-    userID: userId
-  };
-  res.redirect(`/urls/${shortURL}`);
-});
-
-app.post('/urls/:shortURL/update', (req,res) => {
-  const shortURL = req.params.shortURL;
-  
-  if (!urlDatabase[shortURL]) {
-    res.status(404).send('url not in database');
-  } else if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
-    res.status(403).send('Can not update URL that you do not own');
-  } else {
-    urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
-    res.redirect(`/urls/${shortURL}`);
-  }
-
-});
-app.post('/urls/:shortURL/delete', (req, res) =>{
-  const shortURL = req.params.shortURL;
-  if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
-    res.status(403).send('Can not delete URL you do not own');
-  } else {
-    delete urlDatabase[shortURL];
-    res.redirect('/urls');
-  }
-
-});
+//registration
 
 app.post('/register', (req, res) => {
   if (!req.body.email || !req.body.password) {
@@ -135,6 +77,9 @@ app.get('/register', (req, res) => {
   res.render('users_registration', templateVars);
 });
 
+
+//login & logout
+
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
@@ -142,25 +87,72 @@ app.get('/login', (req, res) => {
   res.render('users_login', templateVars);
 });
 
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
+
+app.post('/login', (req, res) => {
+  let userId = getUserIdByEmail(req.body.email, users);
+
+  if (!userId) {
+    res.status(403).send('No user with that email: <a href="/register">register</a>');
+  } else if (!bcrypt.compareSync(req.body.password, users[userId].password)) {
+    res.status(403).send('Incorrect password: <a href="/login">login</a>');
+  } else {
+    req.session.user_id = userId;
+    res.redirect('/urls');
+  }
 });
 
+app.post('/logout', (req, res) => {
+  req.session = null;
+  res.redirect('/login');
+});
+
+//follow shortlink
+
+app.get('/u/:shortURL', (req, res) => {
+  const URL = urlDatabase[req.params.shortURL];
+  const longURL = URL.longURL;
+  if (!URL) {
+    res.statusCode = 404;
+    res.send('link not found');
+  } else {
+    res.redirect(longURL);
+  }
+});
+
+//urls page
+
+
+app.post('/urls', (req, res) => {
+  const userId = req.session.user_id;
+  const shortURL = generateRandomString(6);
+  urlDatabase[shortURL] = {
+    longURL:'http://' + req.body.longURL,
+    userID: userId
+  };
+  res.redirect(`/urls/${shortURL}`);
+});
+
+// ***** Disabled ******
+// app.get('/urls.json', (req, res) => {
+//   res.json(urlDatabase);
+// });
+
 app.get('/urls', (req,res) => {
-  if (!req.session.user_id) {
+  const templateVars = {
+    urls: getUrlsForUser(req.session.user_id, urlDatabase),
+    user: users[req.session.user_id]
+  };
+  
+  if (!templateVars.user) {
     res.send('Please login or register in order to access your URLs\n<a href="/login">Login</a> <a href="Register">Register</a>');
   } else {
-    const templateVars = {
-      urls: getUrlsForUser(req.session.user_id, urlDatabase),
-      user: users[req.session.user_id]
-    };
     res.render('urls_index', templateVars);
   }
   
-  
-  
 });
 
+
+// individual urls
 
 app.get('/urls/new', (req, res) =>{
   const templateVars = {
@@ -173,6 +165,30 @@ app.get('/urls/new', (req, res) =>{
   }
 
   
+});
+
+app.post('/urls/:shortURL/update', (req,res) => {
+  const shortURL = req.params.shortURL;
+  
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send('url not in database');
+  } else if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
+    res.status(403).send('Can not update URL that you do not own');
+  } else {
+    urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
+    res.redirect(`/urls/${shortURL}`);
+  }
+
+});
+app.post('/urls/:shortURL/delete', (req, res) =>{
+  const shortURL = req.params.shortURL;
+  if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
+    res.status(403).send('Can not delete URL you do not own');
+  } else {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
+  }
+
 });
 
 app.get('/urls/:shortURL', (req, res) => {
@@ -190,10 +206,8 @@ app.get('/urls/:shortURL', (req, res) => {
   }
 });
 
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
-});
 
+//  get server listening
 app.listen(PORT, ()=>{
   console.log(`Example app listening on port ${PORT}`);
 });
