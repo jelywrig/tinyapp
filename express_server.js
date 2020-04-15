@@ -1,12 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cookieParser= require('cookie-parser');
+const cookieSession= require('cookie-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  secret: 'sdflkji390982304jkllsjdfe9vc2nmsvl9371',
+  maxAge: 24 * 60 * 60 * 1000 //24 hours
+}));
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
@@ -56,18 +60,18 @@ app.post('/login', (req, res) => {
   } else if(!bcrypt.compareSync(req.body.password, users[userId].password)) {
     res.status(403).send('Incorrect password: <a href="/login">login</a>');
   } else{
-    res.cookie('user_id', userId);
+    req.session.user_id = userId;
     res.redirect('/urls');
   }
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
 
 app.post('/urls', (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = req.session.user_id;
   const shortURL = generateRandomString(6);
   urlDatabase[shortURL] = { 
     longURL:'http://' + req.body.longURL,
@@ -81,7 +85,7 @@ app.post('/urls/:shortURL/update', (req,res) => {
   
   if(!urlDatabase[shortURL]) {
     res.status(404).send('url not in database');
-  } else if(! (req.cookies.user_id === urlDatabase[shortURL].userID)) {
+  } else if(! (req.session.user_id === urlDatabase[shortURL].userID)) {
     res.status(403).send('Can not update URL that you do not own')
   } else {
     urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
@@ -91,7 +95,7 @@ app.post('/urls/:shortURL/update', (req,res) => {
 });
 app.post('/urls/:shortURL/delete', (req, res) =>{
   const shortURL = req.params.shortURL;
-  if(! (req.cookies.user_id === urlDatabase[shortURL].userID)) {
+  if(! (req.session.user_id === urlDatabase[shortURL].userID)) {
     res.status(403).send('Can not delete URL you do not own');
   } else {
     delete urlDatabase[shortURL];
@@ -112,7 +116,7 @@ app.post('/register', (req, res) => {
       password: bcrypt.hashSync(req.body.password,10)
     }
     users[newUser.id] = newUser;
-    res.cookie('user_id', newUser.id);
+    req.session.user_id = newUser.id;
     res.redirect('/urls');
     
   }
@@ -121,14 +125,14 @@ app.post('/register', (req, res) => {
 
 app.get('/register', (req, res) => {
   const templateVars = {  
-    user: users[req.cookies.user_id]
+    user: users[req.session.user_id]
   };
   res.render('users_registration', templateVars);
 });
 
 app.get('/login', (req, res) => {
   const templateVars = {  
-    user: users[req.cookies.user_id]
+    user: users[req.session.user_id]
   };
   res.render('users_login', templateVars);
 });
@@ -138,12 +142,12 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/urls', (req,res) => {
-  if(!req.cookies.user_id) {
+  if(!req.session.user_id) {
     res.send('Please login or register in order to access your URLs\n<a href="/login">Login</a> <a href="Register">Register</a>');
   } else {
     const templateVars = { 
-      urls: getUrlsForUser(req.cookies.user_id), 
-      user: users[req.cookies.user_id]
+      urls: getUrlsForUser(req.session.user_id), 
+      user: users[req.session.user_id]
     };
     res.render('urls_index', templateVars);
   }
@@ -155,7 +159,7 @@ app.get('/urls', (req,res) => {
 
 app.get('/urls/new', (req, res) =>{
   const templateVars = {  
-    user: users[req.cookies.user_id]
+    user: users[req.session.user_id]
   };
   if(templateVars.user) {
     res.render('urls_new', templateVars);
@@ -169,13 +173,13 @@ app.get('/urls/new', (req, res) =>{
 app.get('/urls/:shortURL', (req, res) => {
   if(!urlDatabase[req.params.shortURL]) {
     res.status(404).send('That URL code does not exist\n<a href="/urls">URLs<a>');
-  } else if (!(urlDatabase[req.params.shortURL].userID === req.cookies.user_id)) {
+  } else if (!(urlDatabase[req.params.shortURL].userID === req.session.user_id)) {
     res.status(403).send('That URL does not belong to the currently logged in user <a href="/urls">URLs<a>');
   } else {
     let templateVars = { 
       shortURL: req.params.shortURL, 
       url: urlDatabase[req.params.shortURL],
-      user: users[req.cookies.user_id]
+      user: users[req.session.user_id]
     };
     res.render('urls_show', templateVars);
   }
