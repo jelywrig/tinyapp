@@ -154,14 +154,19 @@ app.get('/u/:shortURL', (req, res) => {
 
 
 app.post('/urls', (req, res) => {
-  const userId = req.session.user_id;
-  const shortURL = generateRandomString(6);
-  urlDatabase[shortURL] = {
-    longURL: req.body.longURL.includes('http') ? req.body.longURL : 'http://' + req.body.longURL,
-    userID: userId,
-    visits: []
-  };
-  res.redirect(`/urls/${shortURL}`);
+  if(!users[req.session.user_id]) {
+    res.status(403).send('Must be a logged in user to create short URL');
+  } else {
+    const userId = req.session.user_id;
+    const shortURL = generateRandomString(6);
+    urlDatabase[shortURL] = {
+      longURL: req.body.longURL.includes('http') ? req.body.longURL : 'http://' + req.body.longURL,
+      userID: userId,
+      visits: []
+    };
+    res.redirect(`/urls/${shortURL}`);
+  }
+ 
 });
 
 // ***** Disabled ******
