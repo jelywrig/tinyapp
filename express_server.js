@@ -177,7 +177,8 @@ app.post('/urls', (req, res) => {
 app.get('/urls', (req,res) => {
   const templateVars = {
     urls: getUrlsForUser(req.session.user_id, urlDatabase),
-    user: users[req.session.user_id]
+    user: users[req.session.user_id],
+    getUniqueVisitors
   };
   
   if (!templateVars.user) {
