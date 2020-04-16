@@ -17,7 +17,7 @@
     </div>
     <div>
       <% if(user){ %>
-        <form class="form-inline" action="/logout" method="POST">
+        <form class="form-inline" action="/logout?_method=PUT" method="POST">
           <div>
             <span>Logged in as <%= user.email %></span>
             <button type="logout" class="btn btn-primary">Logout</button>

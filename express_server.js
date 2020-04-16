@@ -123,7 +123,7 @@ app.post('/login', (req, res) => {
   }
 });
 
-app.post('/logout', (req, res) => {
+app.put('/logout', (req, res) => {
   req.session.user_id = undefined;
   res.redirect('/urls');
 });
