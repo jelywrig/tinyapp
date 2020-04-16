@@ -36,11 +36,13 @@
       <table>
         <thead>
           <th scope="col">Visits</th>
+          <th scope="col">Visitor ID</th>
         </thead>
         <tbody>
           <% for(let visit of url.visits) { %>
             <tr>
               <td><%= visit.datetime %></td>
+              <td><%= visit.visitorID %></td>
             </tr>
           <% } %>
         </tbody>
