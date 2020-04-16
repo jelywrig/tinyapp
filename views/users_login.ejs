@@ -10,7 +10,7 @@
   <%- include('partials/_header') %> 
   <div>
     <h3>Login to your account</h3>
-    <form action='/login' method="POST">
+    <form action='/login?_method=PUT' method="POST">
       <label for="email">Email:</label>
       <input class="form-control" type="email" placeholder="name@example.com" name="email" style="width: 300px; margin: 1em">
       <label for="password">Password:</label>

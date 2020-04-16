@@ -108,7 +108,7 @@ app.get('/login', (req, res) => {
 });
 
 
-app.post('/login', (req, res) => {
+app.put('/login', (req, res) => {
   let userId = getUserIdByEmail(req.body.email, users);
   const templateVars = {user: users[userId]};
   if (!userId) {
