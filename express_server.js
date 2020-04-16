@@ -47,8 +47,8 @@ const users = {
 
 app.get('/', (req, res) => {
   const userID = req.session.user_id;
-  if(!userID || !users[userID]) {
-    res.redirect('./login')
+  if (!userID || !users[userID]) {
+    res.redirect('./login');
   } else  {
     res.redirect('./urls');
   }
@@ -62,7 +62,7 @@ app.post('/register', (req, res) => {
     templateVars.message = 'Must provide email and password when registering. <a href="./register">Register</a>';
     res.status(400).render('error', templateVars);
   } else if (getUserIdByEmail(req.body.email, users)) {
-    templateVars.message = 'This email is already registered. Please <a href="./login">login</a>.'
+    templateVars.message = 'This email is already registered. Please <a href="./login">login</a>.';
     res.status(400).render('error', templateVars);
   } else {
     const newUser = {
@@ -82,7 +82,7 @@ app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
   };
-  if(!templateVars.user) {
+  if (!templateVars.user) {
     res.render('users_registration', templateVars);
   } else {
     res.redirect('/urls');
@@ -97,7 +97,7 @@ app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
   };
-  if(!templateVars.user) {
+  if (!templateVars.user) {
     res.render('users_login', templateVars);
   } else {
     res.redirect('/urls');
@@ -113,7 +113,7 @@ app.post('/login', (req, res) => {
     templateVars.message = 'No user with that email: <a href="/register">register</a>';
     res.status(403).render('error', templateVars);
   } else if (!bcrypt.compareSync(req.body.password, users[userId].password)) {
-    templateVars.message = 'Incorrect password: <a href="/login">login</a>'
+    templateVars.message = 'Incorrect password: <a href="/login">login</a>';
     res.status(403).render('error', templateVars);
   } else {
     req.session.user_id = userId;
@@ -138,7 +138,7 @@ app.get('/u/:shortURL', (req, res) => {
   } else {
     //check for visitor id, assign one if not present
     let visitorID = undefined;
-    if(req.session.visitor_id) {
+    if (req.session.visitor_id) {
       visitorID = req.session.visitor_id;
     } else {
       visitorID = generateRandomString(6);
@@ -226,7 +226,7 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     user: users[req.session.user_id],
     url: urlDatabase[req.params.shortURL],
     shortURL: req.params.shortURL
@@ -238,7 +238,7 @@ app.get('/urls/:shortURL', (req, res) => {
     templateVars.message = 'That URL does not belong to the currently logged in user <a href="/urls">URLs<a>';
     res.status(403).render('error', templateVars);
   } else {
-  templateVars.uniqueVisitors = getUniqueVisitors(urlDatabase[req.params.shortURL]);
+    templateVars.uniqueVisitors = getUniqueVisitors(urlDatabase[req.params.shortURL]);
     res.render('urls_show', templateVars);
   }
 });
