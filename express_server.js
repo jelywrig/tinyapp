@@ -162,7 +162,8 @@ app.post('/urls', (req, res) => {
     urlDatabase[shortURL] = {
       longURL: req.body.longURL.includes('http') ? req.body.longURL : 'http://' + req.body.longURL,
       userID: userId,
-      visits: []
+      visits: [],
+      dateCreated: new Date()
     };
     res.redirect(`/urls/${shortURL}`);
   }
