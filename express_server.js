@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
+const methodOverride = require('method-override');
 const {getUserIdByEmail, generateRandomString,getUrlsForUser, getUniqueVisitors} = require('./helpers');
 const bcrypt = require('bcrypt');
 const app = express();
@@ -13,6 +14,7 @@ app.use(cookieSession({
   secret: 'sdflkji390982304jkllsjdfe9vc2nmsvl9371',
   maxAge: 24 * 60 * 60 * 1000 //24 hours
 }));
+app.use(methodOverride('_method'));
 app.set('view engine', 'ejs');
 
 //**********temp data ****************
@@ -220,7 +222,7 @@ app.post('/urls/:shortURL/update', (req,res) => {
   }
 
 });
-app.post('/urls/:shortURL/delete', (req, res) =>{
+app.delete('/urls/:shortURL', (req, res) =>{
   const shortURL = req.params.shortURL;
   //can only happen via curl etc so don't render error page, just send error text
   if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
