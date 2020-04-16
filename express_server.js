@@ -57,10 +57,13 @@ app.get('/', (req, res) => {
 //registration
 
 app.post('/register', (req, res) => {
+  const templateVars = {user: undefined};
   if (!req.body.email || !req.body.password) {
-    res.status(400).send('must provide email and password');
+    templateVars.message = 'Must provide email and password when registering. <a href="./register">Register</a>';
+    res.status(400).render('error', templateVars);
   } else if (getUserIdByEmail(req.body.email, users)) {
-    res.status(400).send('This email is already registered');
+    templateVars.message = 'This email is already registered. Please <a href="./login">login</a>.'
+    res.status(400).render('error', templateVars);
   } else {
     const newUser = {
       id: generateRandomString(6),
@@ -105,11 +108,13 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   let userId = getUserIdByEmail(req.body.email, users);
-
+  const templateVars = {user: users[userId]};
   if (!userId) {
-    res.status(403).send('No user with that email: <a href="/register">register</a>');
+    templateVars.message = 'No user with that email: <a href="/register">register</a>';
+    res.status(403).render('error', templateVars);
   } else if (!bcrypt.compareSync(req.body.password, users[userId].password)) {
-    res.status(403).send('Incorrect password: <a href="/login">login</a>');
+    templateVars.message = 'Incorrect password: <a href="/login">login</a>'
+    res.status(403).render('error', templateVars);
   } else {
     req.session.user_id = userId;
     res.redirect('/urls');
@@ -171,7 +176,8 @@ app.get('/urls', (req,res) => {
   };
   
   if (!templateVars.user) {
-    res.send('Please login or register in order to access your URLs\n<a href="/login">Login</a> <a href="Register">Register</a>');
+    templateVars.message = 'Please <a href="/login">login</a> or <a href="register">register</a> in order to access your URLs';
+    res.render('error', templateVars);
   } else {
     res.render('urls_index', templateVars);
   }
@@ -195,6 +201,7 @@ app.get('/urls/new', (req, res) =>{
 app.post('/urls/:shortURL/update', (req,res) => {
   const shortURL = req.params.shortURL;
   
+  //can only happen via curl etc so don't render error page, just send error text
   if (!urlDatabase[shortURL]) {
     res.status(404).send('url not in database');
   } else if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
@@ -208,6 +215,7 @@ app.post('/urls/:shortURL/update', (req,res) => {
 });
 app.post('/urls/:shortURL/delete', (req, res) =>{
   const shortURL = req.params.shortURL;
+  //can only happen via curl etc so don't render error page, just send error text
   if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
     res.status(403).send('Can not delete URL you do not own');
   } else {
@@ -218,17 +226,19 @@ app.post('/urls/:shortURL/delete', (req, res) =>{
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  if (!urlDatabase[req.params.shortURL]) {
-    res.status(404).send('That URL code does not exist\n<a href="/urls">URLs<a>');
-  } else if (!(urlDatabase[req.params.shortURL].userID === req.session.user_id)) {
-    res.status(403).send('That URL does not belong to the currently logged in user <a href="/urls">URLs<a>');
+  const templateVars = { 
+    user: users[req.session.user_id],
+    url: urlDatabase[req.params.shortURL],
+    shortURL: req.params.shortURL
+  };
+  if (!templateVars.url) {
+    templateVars.message = 'That URL code does not exist\n<a href="/urls">URLs<a>';
+    res.status(404).render('error', templateVars);
+  } else if (templateVars.url.userID !== req.session.user_id) {
+    templateVars.message = 'That URL does not belong to the currently logged in user <a href="/urls">URLs<a>';
+    res.status(403).render('error', templateVars);
   } else {
-    let templateVars = {
-      shortURL: req.params.shortURL,
-      url: urlDatabase[req.params.shortURL],
-      user: users[req.session.user_id],
-      uniqueVisitors: getUniqueVisitors(urlDatabase[req.params.shortURL])
-    };
+  templateVars.uniqueVisitors = getUniqueVisitors(urlDatabase[req.params.shortURL]);
     res.render('urls_show', templateVars);
   }
 });
