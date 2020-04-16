@@ -207,7 +207,7 @@ app.get('/urls/new', (req, res) =>{
   }
 });
 
-app.post('/urls/:shortURL/update', (req,res) => {
+app.put('/urls/:shortURL', (req,res) => {
   const shortURL = req.params.shortURL;
   
   //can only happen via curl etc so don't render error page, just send error text
@@ -216,7 +216,7 @@ app.post('/urls/:shortURL/update', (req,res) => {
   } else if (! (req.session.user_id === urlDatabase[shortURL].userID)) {
     res.status(403).send('Can not update URL that you do not own');
   } else {
-    urlDatabase[shortURL].longURL = 'http://' + req.body.longURL;
+    urlDatabase[shortURL].longURL = req.body.longURL.includes('http') ? req.body.longURL : 'http://' + req.body.longURL;
     urlDatabase[shortURL].visits = [];
     res.redirect(`/urls/${shortURL}`);
   }
