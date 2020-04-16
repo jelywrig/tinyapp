@@ -58,7 +58,7 @@ app.get('/', (req, res) => {
 
 //registration
 
-app.post('/register', (req, res) => {
+app.put('/register', (req, res) => {
   const templateVars = {user: undefined};
   if (!req.body.email || !req.body.password) {
     templateVars.message = 'Must provide email and password when registering. <a href="./register">Register</a>';
